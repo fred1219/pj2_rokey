@@ -1,6 +1,6 @@
 # pj2_rokey
 
-협동-2: AI(Computer Vision)기반 협동 로봇 작업 어시스턴트 구현 프로젝트
+협동-2: AI(Computer Vision)기반 협동 로봇 작업 어시스턴트 구현 프로젝트<br>
 주제: Face-Arm(서비스 협동 로봇)
 
 1. 개발 과정<br>
