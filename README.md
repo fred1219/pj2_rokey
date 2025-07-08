@@ -23,15 +23,72 @@
 
 2. 주요 기능 구현 과정
 
-- 음성 명령(로봇 동작 트리거)
-  기술 스택 및 구조
-    STT 엔진: OpenAI API (Whisper 아님)
-    Wake-up Word 엔진: Whisper
-    기타 기술: 프롬프트 규칙 설계, 리소스 최적화
+2-1. 음성 명령 인식 (로봇 동작 트리거)
+기술 스택 및 구조
 
-- 사용자 & 물체 위치 인지
+STT 엔진: OpenAI API
 
-- 로봇이 물체를 집어 사용자에게 전달
+Wake-up Word 엔진: Whisper
+
+기타 기술: 프롬프트 규칙 설계, 리소스 최적화
+
+구현 내용
+
+Wake-up Word → STT → 명령어 추출 구조로 구현
+
+초기에는 STT가 상시 대기하는 구조였으나, 리소스 효율성 향상을 위해 wake-up 키워드("Hello Rokey") 인식 후 STT가 실행되는 구조로 개선
+
+명령어 분석 후 ‘이동’, ‘물체 집기’, ‘사용자에게 전달’, ‘초기화’ 등 다양한 로봇 행동으로 연결
+
+2-2. 사용자 및 물체 위치 인식
+기술 스택 및 구조
+
+카메라: RealSense D435i (RGB-D), Logitech C270 (RGB)
+
+객체 인식: YOLO 모델 (ultralytics YOLO)
+
+캘리브레이션: OpenCV cv2.calibrateHandEye()
+
+좌표 변환 및 리매핑: numpy, hand-eye calibration 결과 파일 (T_gripper2camera.npy)
+
+구현 내용
+
+RealSense D435i 카메라로 물체 감지 및 3D 위치(x, y, z) 추출 → YOLO 객체 인식과 Depth 정보 기반
+
+카메라를 로봇팔에 부착(Eye-in-Hand 구성)하여 외부 파라미터(Hand-Eye Calibration) 수행
+→ Checkerboard를 다양한 각도에서 촬영한 이미지로 cv2.calibrateHandEye() 사용
+→ 생성된 변환 행렬(T_gripper2camera.npy)을 통해 카메라 좌표 → 로봇 기준 좌표 변환
+
+Logitech C270 RGB 카메라로 사용자의 얼굴 위치(x, y) 인식
+
+카메라 화면 좌표계를 협동로봇 기준 좌표계(x, z)로 리매핑
+→ 실제 작업 공간을 측정해 하드코딩한 값(예: X: 50660 mm, Z: 330630 mm) 사용
+→ 해상도 차이, 좌표계 축 방향 차이, 실세계 물리적 공간 제약을 반영하여 보정
+
+2-3. 로봇 동작 제어 및 물체 전달
+기술 스택 및 구조
+
+ROS2 기반 서비스 통신 (서비스 /get_3d_position, /get_keyword)
+
+로봇 제어 명령: DSR_ROBOT2 라이브러리 (movej, movel, get_tool_force 등)
+
+그리퍼 제어: OnRobot RG2 라이브러리
+
+음성 안내: pydub 라이브러리 (mp3 재생), Naver Clova (음성 더빙)
+
+구현 내용
+
+YOLO 기반 인식된 물체 좌표를 /get_3d_position 서비스로 받아 로봇 이동 좌표로 변환
+
+Hand-Eye 캘리브레이션 결과(T_gripper2camera.npy)와 현재 로봇 위치(get_current_posx())를 조합하여 카메라 좌표를 로봇 기준 좌표계로 변환
+
+(YOLO 박스 중심 픽셀 좌표 → RealSense 카메라 좌표 → 로봇 좌표 변환)
+
+이동 및 Pick & Place는 movej, movel, RG2 그리퍼를 활용해 수행
+
+그리퍼 센서 데이터를 활용한 직접 구현 함수 check_grip() 사용 (OnRobot.get_status()와 DSR_ROBOT2.get_tool_force() 활용)
+→ 센서 데이터를 기반으로 물체 접촉 여부 판단
+→ 외력 변화가 감지되면 그리퍼를 자동으로 열거나 닫으며, 음성 안내(mp3)를 통해 동작 상태를 사용자에게 알림
 
 3. 도전 과제와 문제 해결 방법
 
@@ -43,6 +100,7 @@
 6. 프로젝트 결과 (목표와 성과)
 
 7. 프로젝트 화면 및 기능 데모
+![image](https://github.com/user-attachments/assets/2b0b3f95-ca7c-4aef-9a30-81f8efa3dd3e)
 
 8. 후기 및 향후 개선 사항
 
