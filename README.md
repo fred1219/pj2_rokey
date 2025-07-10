@@ -226,8 +226,9 @@
 - 사용자 얼굴 인식 → 물체 전달 → 음성 피드백까지 통합 동작
 - Hand-Eye, 센서 기반 좌표 변환까지 포함한 전체 파이프라인 구현
 
-  🎥 [▶️ 시연 영상 보기(상단 시연 링크와 동일)](https://youtu.be/GI565ckTv_A)  
-  📷 _시스템 구조 다이어그램, YOLO 인식 화면 등 이미지 삽입 권장_
+###  🎥 [▶️ 시연 영상 보기(상단 시연 링크와 동일)](https://youtu.be/GI565ckTv_A)  
+###  📷 _시스템 구조 다이어그램_
+  ![Demo](https://github.com/user-attachments/assets/2b0b3f95-ca7c-4aef-9a30-81f8efa3dd3e)
 ---
 
 ## 8. 프로젝트 결과
