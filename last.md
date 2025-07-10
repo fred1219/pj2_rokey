@@ -69,13 +69,13 @@
 |------------|-----------------------------------------------------|
 | 언어       | Python                                              |
 | 로봇 제어  | ROS 2 (Humble), Doosan DSR_ROBOT2 API              |
-| 음성 인식  | OpenAI Whisper (STT), Wake Word Trigger            |
+| 음성 인식  | OpenAI Whisper (STT), Wake-up Word                |
 | 음성 출력  | pydub (mp3), Naver Clova TTS                       |
 | 객체 인식  | YOLOv8 (Ultralytics)                               |
 | 센서       | Intel RealSense D435i (RGB-D), Logitech C270 (RGB) |
 | 그리퍼 제어 | OnRobot RG2                                        |
 | 캘리브레이션 | OpenCV Hand-Eye (`cv2.calibrateHandEye()`)        |
-| ROS 통신   | 토픽(`/remapped_coord`) + 서비스(`/get_3d_position`, `/get_keyword`) |
+| ROS 통신   | 토픽(`/remapped_coord`) + 서비스(`/get_keyword`, `/get_3d_position`) |
 
 ---
 
@@ -157,29 +157,30 @@
 
 ---
 
-### `object_detection.py`  
-**역할**: YOLO 객체 인식 및 RealSense 깊이 데이터 결합 3D 위치 산출  
-**주요 기능**: 객체 중심 좌표 및 Depth 정보를 사용해 월드 3차원 위치 계산 → `/get_3d_position` 서비스 서버 제공  
-
-**ROS 2 구성**:
-- **노드명**: `object_detection_node` (객체 인식 및 위치 산출)
-- **서비스 서버**: `/get_3d_position` (3D 위치 응답 서비스)
-
----
-
 ### `get_keyword.py`  
 **역할**: STT + LangChain 기반 음성 명령 키워드 추출  
 **주요 기능**: Wake-up Word 인식 후 STT 수행 → 자연어 명령에서 핵심 키워드 추출 → `/get_keyword` 서비스 서버로 제공  
 
 **ROS 2 구성**:
 - **노드명**: `keyword_extraction_node` (음성 키워드 추출)
-- **서비스 서버**: `/get_keyword` (키워드 반환 서비스)
+- **서비스 서버1**: `/get_keyword` (키워드 반환 서비스)
+
+---
+
+### `object_detection.py`  
+**역할**: YOLO 객체 인식 및 RealSense 깊이 데이터 결합 3D 위치 산출  
+**주요 기능**: 객체 중심 좌표 및 Depth 정보를 사용해 월드 3차원 위치 계산 → `/get_3d_position` 서비스 서버 제공  
+
+**ROS 2 구성**:
+- **노드명**: `object_detection_node` (객체 인식 및 위치 산출)
+- **서비스 서버2**: `/get_3d_position` (3D 위치 응답 서비스)
 
 ---
 
 ### `robot_control.py`  
 **역할**: 키워드 기반 로봇 동작 실행 및 위치 정보 활용 정밀 제어  
 **주요 기능**:  
+- `/get_keyword` 서비스 클라이언트 호출로 음성 텍스트에서 추출된 키워드 획득
 - `/get_3d_position` 서비스 클라이언트 호출로 물체 위치 획득  
 - `/remapped_coord` 토픽 구독으로 얼굴 위치 실시간 수신  
 - 그리퍼 제어 및 외력 감지 기반 예외처리 포함  
@@ -187,7 +188,8 @@
 **ROS 2 구성**:
 - **노드명**: `robot_control_node` (로봇 제어 및 상태 관리)
 - **토픽 구독**: `/remapped_coord` (얼굴 위치)
-- **서비스 클라이언트**: `/get_3d_position` (객체 위치 요청)
+- **서비스 클라이언트1**: `/get_keyword` (키워드 추출 요청)
+- **서비스 클라이언트2**: `/get_3d_position` (객체 위치 요청)
 
 ---
 
