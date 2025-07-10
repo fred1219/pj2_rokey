@@ -1,7 +1,7 @@
 # Face-Arm: AI 기반 협동 로봇 작업 어시스턴트
 
 **ROS 2 + YOLOv8 + STT 기반으로, 사용자 음성 → 로봇 제어 → 물체 전달까지 수행하는 협동로봇 시스템을 구현했습니다.**  
-**고령화 사회의 노인복지 부담을 해소시키고자 서비스 로봇 프로토타입을 목표로, 인식-판단-행동 전체 파이프라인을 설계하고 구현했습니다.**
+**고령화 사회의 노인복지 부담을 해소시키고자 서비스 로봇 프로토타입을 목표로, `인식-판단-행동` 전체 파이프라인을 설계하고 구현했습니다.**
 
 - 📅 **개발 기간**: 2025.05.23 ~ 06.05 (10일)
 - 🧑‍🤝‍🧑 **인원 구성**: 4명  
@@ -75,8 +75,8 @@
 | 객체 인식  | YOLOv8 (Ultralytics)                               |
 | 센서       | Intel RealSense D435i (RGB-D), Logitech C270 (RGB) |
 | 그리퍼 제어 | OnRobot RG2                                        |
-| 캘리브레이션 | OpenCV Hand-Eye (cv2.calibrateHandEye())        |
-| ROS 통신   | 토픽(/remapped_coord) + 서비스(/get_keyword, /get_3d_position) |
+| 캘리브레이션 | OpenCV Hand-Eye (`cv2.calibrateHandEye()`)        |
+| ROS 통신   | 토픽(`/remapped_coord`) + 서비스(`/get_keyword`, `/get_3d_position`) |
 
 ---
 
@@ -100,8 +100,8 @@
 #### 📌 기술 스택 및 구조
 - **사용자 감지**: Logitech C270 (RGB 카메라)  
 - **물체 인식**: Intel RealSense D435i (RGB-D 카메라) + YOLOv8 (Ultralytics)  
-- **캘리브레이션**: OpenCV cv2.calibrateHandEye()  
-- **좌표 변환**: numpy, Hand-Eye 보정 행렬 (T_gripper2camera.npy)  
+- **캘리브레이션**: OpenCV `cv2.calibrateHandEye()`  
+- **좌표 변환**: numpy, Hand-Eye 보정 행렬 (`T_gripper2camera.npy`)  
 
 #### ⚙️ 구현 내용
 - YOLOv8로 사용자 얼굴 및 물체 검출 후, **RealSense Depth 센서**로 물체 3D 좌표 추출  
@@ -116,12 +116,12 @@
 ### 3-3. ⚙️ 로봇 동작 제어 및 물체 전달
 
 #### 📌 기술 스택 및 구조
-- **로봇 제어**: DSR_ROBOT2 라이브러리 (movej, movel, get_tool_force 등)  
+- **로봇 제어**: DSR_ROBOT2 라이브러리 (`movej`, `movel`, `get_tool_force` 등)  
 - **그리퍼 제어**: OnRobot RG2 (센서 상태 확인 및 제어)  
 - **음성 안내**: pydub (mp3 재생), Naver Clova TTS  
 
 #### ⚙️ 구현 내용
-- /get_3d_position 서비스로 YOLO 기반 인식 좌표 획득  
+- `/get_3d_position` 서비스로 YOLO 기반 인식 좌표 획득  
 - Hand-Eye 보정 행렬과 로봇 현재 위치를 조합해 로봇 좌표계로 변환  
 - 변환된 좌표를 활용해 **로봇 이동 및 그리퍼 동작 수행 (픽 앤 플레이스)**  
 - **그리퍼 센서 상태 및 외력 변화 감지 기능**을 통해 물체 접촉 유무 판단  
@@ -148,49 +148,49 @@
 
 ## 4. 핵심 코드 구현
 
-### face_yolo.py  
+### `face_yolo.py`  
 **역할**: YOLO 기반 얼굴 탐지 및 월드 좌표계 변환  
-**주요 기능**: 얼굴 중심 픽셀 좌표 추출 → Hand-Eye Calibration 결과 행렬로 리맵핑 → /remapped_coord 토픽 발행  
+**주요 기능**: 얼굴 중심 픽셀 좌표 추출 → Hand-Eye Calibration 결과 행렬로 리맵핑 → `/remapped_coord` 토픽 발행  
 
 **ROS 2 구성**:
-- **노드명**: face_yolo_node (얼굴 탐지 및 좌표 변환)
-- **토픽 발행**: /remapped_coord (3D 얼굴 위치 좌표)
+- **노드명**: `face_yolo_node` (얼굴 탐지 및 좌표 변환)
+- **토픽 발행**: `/remapped_coord` (3D 얼굴 위치 좌표)
 
 ---
 
-### get_keyword.py  
+### `get_keyword.py`  
 **역할**: STT + LangChain 기반 음성 명령 키워드 추출  
-**주요 기능**: Wake-up Word 인식 후 STT 수행 → 자연어 명령에서 핵심 키워드 추출 → /get_keyword 서비스 서버로 제공  
+**주요 기능**: Wake-up Word 인식 후 STT 수행 → 자연어 명령에서 핵심 키워드 추출 → `/get_keyword` 서비스 서버로 제공  
 
 **ROS 2 구성**:
-- **노드명**: keyword_extraction_node (음성 키워드 추출)
-- **서비스 서버1**: /get_keyword (키워드 반환 서비스)
+- **노드명**: `keyword_extraction_node` (음성 키워드 추출)
+- **서비스 서버1**: `/get_keyword` (키워드 반환 서비스)
 
 ---
 
-### object_detection.py  
+### `object_detection.py`  
 **역할**: YOLO 객체 인식 및 RealSense 깊이 데이터 결합 3D 위치 산출  
-**주요 기능**: 객체 중심 좌표 및 Depth 정보를 사용해 월드 3차원 위치 계산 → /get_3d_position 서비스 서버 제공  
+**주요 기능**: 객체 중심 좌표 및 Depth 정보를 사용해 월드 3차원 위치 계산 → `/get_3d_position` 서비스 서버 제공  
 
 **ROS 2 구성**:
-- **노드명**: object_detection_node (객체 인식 및 위치 산출)
-- **서비스 서버2**: /get_3d_position (3D 위치 응답 서비스)
+- **노드명**: `object_detection_node` (객체 인식 및 위치 산출)
+- **서비스 서버2**: `/get_3d_position` (3D 위치 응답 서비스)
 
 ---
 
-### robot_control.py  
+### `robot_control.py`  
 **역할**: 키워드 기반 로봇 동작 실행 및 위치 정보 활용 정밀 제어  
 **주요 기능**:  
-- /get_keyword 서비스 클라이언트 호출로 음성 텍스트에서 추출된 키워드 획득
-- /get_3d_position 서비스 클라이언트 호출로 물체 위치 획득  
-- /remapped_coord 토픽 구독으로 얼굴 위치 실시간 수신  
+- `/get_keyword` 서비스 클라이언트 호출로 음성 텍스트에서 추출된 키워드 획득
+- `/get_3d_position` 서비스 클라이언트 호출로 물체 위치 획득  
+- `/remapped_coord` 토픽 구독으로 얼굴 위치 실시간 수신  
 - 그리퍼 제어 및 외력 감지 기반 예외처리 포함  
 
 **ROS 2 구성**:
-- **노드명**: robot_control_node (로봇 제어 및 상태 관리)
-- **토픽 구독**: /remapped_coord (얼굴 위치)
-- **서비스 클라이언트1**: /get_keyword (키워드 추출 요청)
-- **서비스 클라이언트2**: /get_3d_position (객체 위치 요청)
+- **노드명**: `robot_control_node` (로봇 제어 및 상태 관리)
+- **토픽 구독**: `/remapped_coord` (얼굴 위치)
+- **서비스 클라이언트1**: `/get_keyword` (키워드 추출 요청)
+- **서비스 클라이언트2**: `/get_3d_position` (객체 위치 요청)
 
 ---
 
