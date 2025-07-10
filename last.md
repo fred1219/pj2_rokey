@@ -238,7 +238,7 @@
 
 ## 9. 기능 데모
 
-🎥 [▶️ 시연 영상 보기](https://youtu.be/your_video_link)  
+🎥 [▶️ 시연 영상 보기](https://youtu.be/GI565ckTv_A)  
 📷 _시스템 구조 다이어그램, YOLO 인식 화면 등 이미지 삽입 권장_
 
 ---
