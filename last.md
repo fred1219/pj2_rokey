@@ -69,7 +69,7 @@
 | 음성 출력  | pydub (mp3), Naver Clova TTS                       |
 | 객체 인식  | YOLOv8 (Ultralytics)                               |
 | 센서       | Intel RealSense D435i (RGB-D), Logitech C270 (RGB) |
-| 그리퍼 제어 | OnRobot RG2 + Force Sensor                        |
+| 그리퍼 제어 | OnRobot RG2                                        |
 | 캘리브레이션 | OpenCV Hand-Eye (`cv2.calibrateHandEye()`)        |
 | ROS 통신   | 토픽(`/remapped_coord`) + 서비스(`/get_3d_position`, `/get_keyword`) |
 
